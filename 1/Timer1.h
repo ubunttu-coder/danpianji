@@ -1,0 +1,12 @@
+#ifndef __TIMER1_H__
+#define __TIMER1_H__
+#include <REGX52.H>
+
+sbit KEY_PLAY = P1^0;   // ??/??
+sbit KEY_NEXT = P1^1;   // ???
+sbit KEY_PREV = P1^2;   // ???
+sbit KEY_STOP = P1^3;   // ??
+extern unsigned char g_key;
+void Timer1_Init();
+
+#endif

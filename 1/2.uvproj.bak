@@ -233,7 +233,7 @@
               <RCB>
                 <Type>0</Type>
                 <StartAddress>0x0</StartAddress>
-                <Size>0xffff</Size>
+                <Size>0x10000</Size>
               </RCB>
               <RXB>
                 <Type>0</Type>
@@ -382,29 +382,9 @@
               <FilePath>.\STARTUP.A51</FilePath>
             </File>
             <File>
-              <FileName>Timer1.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\Timer1.c</FilePath>
-            </File>
-            <File>
               <FileName>main.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\main.c</FilePath>
-            </File>
-            <File>
-              <FileName>Timer1.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\Timer1.h</FilePath>
-            </File>
-            <File>
-              <FileName>Delayms.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\Delayms.c</FilePath>
-            </File>
-            <File>
-              <FileName>Timer0.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\Timer0.c</FilePath>
             </File>
           </Files>
         </Group>

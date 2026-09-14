@@ -1,4 +1,4 @@
-C51 COMPILER V9.54   MAIN                                                                  11/30/2025 20:42:26 PAGE 1   
+C51 COMPILER V9.54   MAIN                                                                  09/14/2026 20:55:47 PAGE 1   
 
 
 C51 COMPILER V9.54, COMPILATION OF MODULE MAIN
@@ -7,22 +7,23 @@ COMPILER INVOKED BY: D:\C51\BIN\C51.EXE main.c OPTIMIZE(8,SPEED) BROWSE DEBUG OB
 
 line level    source
 
-   1          /******************************************声明******************************************************/
-   2          ////////////////////////////程序由bilibili川乐水兴（UID181818866）制作/////////////////////////////////
-   3          //////////////////我觉得这个程度大概也用不做商业用途，不过还是禁止的，仅供参考学习////////////////////////
-   4          ///////////////////////////欢迎大家来B站支持我，给我最新的视频三连什么的////////////////////////////////
-   5          ///////////////////////////////////我的GitHub号是yalexing/////////////////////////////////////////////
-   6          /////////////此程序最初是适用于proteus软件仿真的，可能直接移到实物上并不适用，这就需要你们改了////////////
-   7          /***************************************************************************************************/
-   8          #include <lcd12864.c>
-   9          #include "Delayms.h"
-  10          #include "Timer0.h"
+*** WARNING C500 IN LINE 1 OF main.c: MISSING LICENSE ID CODE (LIC) IN 'TOOLS.INI'
+   1          /**************************************************************
+   2           * Bad Apple player on AT89C52 + LCD12864 + SD card
+   3           * Original: bilibili UP "yalexing" (UID 181818866, GitHub: yalexing)
+   4           * For study only, not for commercial use.
+   5           * Added: independent key control (play/pause, next/prev frame, stop)
+   6           **************************************************************/
+   7          #include <lcd12864.c>
+   8          #include "Delayms.h"
+   9          #include "Timer0.h"
+  10          #include "Timer1.h"
   11          
   12          sbit BEEP = P2^5;
   13          
-  14          #define P 0 //???
-  15          #define L1  1 //L????
-  16          #define L1_ 2 //_????? ?#1
+  14          #define P 0
+  15          #define L1  1
+  16          #define L1_ 2
   17          #define L2  3
   18          #define L2_ 4
   19          #define L3  5
@@ -33,7 +34,7 @@ line level    source
   24          #define L6  10
   25          #define L6_ 11
   26          #define L7  12
-  27          #define M1  13  //M????
+  27          #define M1  13
   28          #define M1_ 14
   29          #define M2  15
   30          #define M2_ 16
@@ -45,7 +46,7 @@ line level    source
   36          #define M6  22
   37          #define M6_ 23
   38          #define M7  24
-  39          #define H1  25  //
+  39          #define H1  25
   40          #define H1_ 26
   41          #define H2  27
   42          #define H2_ 28
@@ -59,153 +60,158 @@ line level    source
   50          #define H7  36
   51          #define STOP 37
   52          
-  53          unsigned int FreqTable[] = {
+  53          unsigned int xdata FreqTable[] = {
   54            0,
-  55            63777,63872,63969,64054,64140,64216,64291,64360,64426,64489,64547,64603,
-C51 COMPILER V9.54   MAIN                                                                  11/30/2025 20:42:26 PAGE 2   
+C51 COMPILER V9.54   MAIN                                                                  09/14/2026 20:55:47 PAGE 2   
 
+  55            63777,63872,63969,64054,64140,64216,64291,64360,64426,64489,64547,64603,
   56            64655,64704,64751,64795,64837,64876,64913,64948,64981,65012,65042,65070,
   57            65095,65120,65144,65166,65186,65206,65225,65242,65259,65274,65289,65303
   58          };
   59          
-  60          unsigned char code Music[][2] = { //???????,1???
+  60          unsigned char xdata Music[][2] = {
   61            {M3,4},{M2,2},{M1,4},{M2,2},{M3,3},{M4,1},{M3,2},{M2,4},{P,2},
-  62            {M3,4},{M2,2},{M1,4},{M2,2},{M3,3},{M4,1},{M3,2},{M2,4},{P,2},
+  62          
   63            {M3,4},{M2,2},{M1,4},{M2,2},{M3,3},{M4,1},{M3,2},{M2,4},{P,2},
-  64            {M3,4},{M2,2},{M1,4},{M2,2},{M3,3},{M4,1},{M3,2},{M2,4},
-  65            {M1,1},{M2,1},{M3,2},{M3,2},{M2,2},{M4,2},{M3,2},{M2,2},{M2,2},{M2,2},{M1,1},{M1,1},{M4,2},{M3,2},{M2,2},
+  64          
+  65            {M3,4},{M2,2},{M1,4},{M2,2},{M3,3},{M4,1},{M3,2},{M2,4},{P,2},
+  66          
+  67            {M3,4},{M2,2},{M1,4},{M2,2},{M3,3},{M4,1},{M3,2},{M2,4},
+  68          
+  69            {M1,1},{M2,1},{M3,2},{M3,2},{M2,2},{M4,2},{M3,2},{M2,2},{M2,2},{M2,2},{M1,1},{M1,1},{M4,2},{M3,2},{M2,2},
              -{M2,4},{M1,1},{M2,1},{M3,6},{P,6},
-  66              //???? ??????? ???
-  67            {M3,2},{M5,2},{H1,1},{H1,1},{M7,4},{H1,2},{M7,4},{H1,2},{M7,1},{M6,1},{M5,2},{P,2},
-  68              //?? ?????????
-  69            {M5,2},{M2,2},{M4,2},{M4,4},{M3,2},{M3,2},{P,2},{L5,2},{M4,2},{M3,2},{M2,2},{M3,4},{M5,2},{M1,6},
-  70              //????????????
-  71            {P,4},{M1,2},{M2,2},{M1,3},{M1,1},{M1,2},{M5,2},{M1,2},{M4,4},{M3,2},{M2,4},{M1,2},{M1,6},
-  72              //?????????
-  73            {P,4},{M1,1},{M2,1},{M3,2},{M3,2},{M2,2},{M4,2},{M3,2},{M2,2},{M2,2},{M2,2},{M1,1},{M1,1},{M4,2},{M3,2},{
+  70          
+  71            {M3,2},{M5,2},{H1,1},{H1,1},{M7,4},{H1,2},{M7,4},{H1,2},{M7,1},{M6,1},{M5,2},{P,2},
+  72          
+  73            {M5,2},{M2,2},{M4,2},{M4,4},{M3,2},{M3,2},{P,2},{L5,2},{M4,2},{M3,2},{M2,2},{M3,4},{M5,2},{M1,6},
+  74          
+  75            {P,4},{M1,2},{M2,2},{M1,3},{M1,1},{M1,2},{M5,2},{M1,2},{M4,4},{M3,2},{M2,4},{M1,2},{M1,6},
+  76          
+  77            {P,4},{M1,1},{M2,1},{M3,2},{M3,2},{M2,2},{M4,2},{M3,2},{M2,2},{M2,2},{M2,2},{M1,1},{M1,1},{M4,2},{M3,2},{
              -M2,2},{M2,4},{M1,1},{M2,1},{M3,6},{P,6},
-  74              //????? ????? ??? ?
-  75            {M3,2},{M5,2},{H1,2},{M7,4},{H1,2},{M7,4},{H1,2},{M7,1},{M6,1},{M5,2},{P,2},
-  76              //????????
-  77            {M5,2},{M2,2},{M4,2},{M4,4},{M3,2},{M3,2},{P,2},{L5,2},{M4,2},{M3,2},{M2,2},{M3,4},{M5,2},{M1,10},{M1,1},
+  78          
+  79            {M3,2},{M5,2},{H1,2},{M7,4},{H1,2},{M7,4},{H1,2},{M7,1},{M6,1},{M5,2},{P,2},
+  80          
+  81            {M5,2},{M2,2},{M4,2},{M4,4},{M3,2},{M3,2},{P,2},{L5,2},{M4,2},{M3,2},{M2,2},{M3,4},{M5,2},{M1,10},{M1,1},
              -{M1,1},{M2,2},{M1,2},{P,2},
-  78              //?????? ????????????
-  79            {M1,2},{M5,2},{M1,2},{M4,2},{M4,1},{M4,1},{M3,1},{M2,1},{M2,4},{M1,2},{M1,6},{P,6},
-  80              //????????
-  81            {M6,2},{M5,2},{M5,2},{M5,2},{M4,2},{M4,2},{M3,2},{M2,2},{M2,2},{M2,4},
-  82              //????? ?????
-  83            {M5,2},{M5,2},{M4,1},{M4,1},{M4,2},{M4,2},{M3,2},{M2,2},{M2,4},{M1,1},{L7,1},{M1,4},{P,2},
-  84              //???? ???????
+  82          
+  83            {M1,2},{M5,2},{M1,2},{M4,2},{M4,1},{M4,1},{M3,1},{M2,1},{M2,4},{M1,2},{M1,6},{P,6},
+  84          
   85            {M6,2},{M5,2},{M5,2},{M5,2},{M4,2},{M4,2},{M3,2},{M2,2},{M2,2},{M2,4},
-  86              //????? ?????
-  87            {M2,2},{M3,2},{M3,1},{M3,1},{M3,1},{M3,1},{M3,2},{M2,2},{M3,2},{H2,4},{H1,2},{H1,2},{P,2},
-  88              //???????????
-  89            {H1,2},{M7,4},{M6,2},{M6,6},{P,4},{M6,2},{M6,2},{M5,2},{M4,1},{M4,1},{M4,6},{M3,1},{M4,1},{M5,10},{P,6},
-  90              //?? ?????????
-  91            {M3,1},{M2,1},{M3,1},{M2,1},{M3,1},{M4,1},{M5,4},{M4,1},{M5,1},{M6,4},{M6,1},{M7,1},{H1,2},{P,2},
-  92              //?????? ??????
-  93            {H2,1},{H1,1},{M5,4},{M1,2},{M5,2},{M4,2},{M3,2},{M3,4},{M3,1},{M3,1},{M5,4},{P,2},
-  94              //?????? ??
-  95            {M3,1},{M2,1},{M3,1},{M2,1},{M3,1},{M4,1},{M5,4},{M4,1},{M5,1},{M6,4},{M6,1},{M7,1},{H1,2},{P,2},
-  96              //?????? ??????
-  97            {H1,1},{H3,2},{H3,2},{P,1},{H2,1},{H4,2},{H3,2},{H2,2},{H2,3},{H1,1},{H1,1},{M7,1},{H1,2},{P,2},
-  98              //?? ????????
-  99            {M5,1},{H1,1},{H2,4},{H1,2},{H1,2},{P,2},{M5,2},{H2,4},{H1,2},{H1,2},{P,2},
- 100              //???? ????
- 101            {M5,1},{H1,1},{H2,4},{H1,2},{H1,2},{P,2},{M5,1},{H1,1},{H2,3},{H3,1},{H2,2},{H1,2},{P,2},
- 102              //??????????
- 103            {H1,2},{H1,4},{M6,2},{M6,4},{M5,2},{M5,4},{M4,2},{M4,2},{M3,2},{M2,2},{M3,6},{P,6},{M3,2},{M4,2},{M3,2},{
-             -M4,2},{M3,2},{M2,2},{M1,6},
- 104              //????? ??????? ???????
- 105            {STOP,1}
- 106          };
- 107          
- 108          unsigned char FreqSelect,MusicSelect;
- 109          void main(void)
- 110          {
- 111   1        unsigned long int address =  0x000000;
- 112   1        unsigned char xdata a[176];
- 113   1        unsigned char xdata b[176];
-C51 COMPILER V9.54   MAIN                                                                  11/30/2025 20:42:26 PAGE 3   
+  86          
+  87            {M5,2},{M5,2},{M4,1},{M4,1},{M4,2},{M4,2},{M3,2},{M2,2},{M2,4},{M1,1},{L7,1},{M1,4},{P,2},
+  88          
+  89          // {M6,2},{M5,2},{M5,2},{M5,2},{M4,2},{M4,2},{M3,2},{M2,2},{M2,2},{M2,4},
+  90          
+  91          //  {M2,2},{M3,2},{M3,1},{M3,1},{M3,1},{M3,1},{M3,2},{M2,2},{M3,2},{H2,4},{H1,2},{H1,2},{P,2},
+  92          
+  93          //  {H1,2},{M7,4},{M6,2},{M6,6},{P,4},{M6,2},{M6,2},{M5,2},{M4,1},{M4,1},{M4,6},{M3,1},{M4,1},{M5,10},{P,6}
+             -,
+  94          
+  95          //  {M3,1},{M2,1},{M3,1},{M2,1},{M3,1},{M4,1},{M5,4},{M4,1},{M5,1},{M6,4},{M6,1},{M7,1},{H1,2},{P,2},
+  96          
+  97          //  {H2,1},{H1,1},{M5,4},{M1,2},{M5,2},{M4,2},{M3,2},{M3,4},{M3,1},{M3,1},{M5,4},{P,2},
+  98          
+  99          //  {M3,1},{M2,1},{M3,1},{M2,1},{M3,1},{M4,1},{M5,4},{M4,1},{M5,1},{M6,4},{M6,1},{M7,1},{H1,2},{P,2},
+ 100          
+ 101          //  {H1,1},{H3,2},{H3,2},{P,1},{H2,1},{H4,2},{H3,2},{H2,2},{H2,3},{H1,1},{H1,1},{M7,1},{H1,2},{P,2},
+ 102          
+ 103          //  {M5,1},{H1,1},{H2,4},{H1,2},{H1,2},{P,2},{M5,2},{H2,4},{H1,2},{H1,2},{P,2},
+ 104          
+ 105          //  {M5,1},{H1,1},{H2,4},{H1,2},{H1,2},{P,2},{M5,1},{H1,1},{H2,3},{H3,1},{H2,2},{H1,2},{P,2},
+ 106          
+ 107            {H1,2},{H1,4},{M6,2},{M6,4},{M5,2},{M5,4},{M4,2},{M4,2},{M3,2},{M2,2},{M3,6},{P,6},{M3,2},{M4,2},{M3,2},{
+             -M4,2},{M3,2},{M2,2},{M1,6},{STOP,1}};
+ 108          
+ 109          unsigned char FreqSelect, MusicSelect;
+ 110          
+ 111          // ===== key control state =====
+C51 COMPILER V9.54   MAIN                                                                  09/14/2026 20:55:47 PAGE 3   
 
- 114   1        unsigned char xdata c[176];
- 115   1        unsigned char xdata d[176];
- 116   1        uint n = 64;
- 117   1        
- 118   1        F12864_init();
- 119   1        F12864_clear();
- 120   1        write_commond(0x98);
- 121   1        Timer0_Init();
- 122   1        /*while(!SdInit());
- 123   1        
- 124   1        for(;n > 0;n--)
- 125   1        {
- 126   1          dprintf_hanzi_string_4(GB_0,2,n,22,0);
- 127   1        }
- 128   1        for(n=64;n > 24;n--)
- 129   1        {
- 130   1          dprintf_hanzi_string_2(GB_1,7,n,13,0);
- 131   1          _nop_();
- 132   1          _nop_();
- 133   1        }
- 134   1        for(n=64;n > 40;n--)
- 135   1        {
- 136   1          dprintf_hanzi_string_3(GB_13,4,n,4,0);
- 137   1          _nop_();
- 138   1        }*///by 川乐水兴
- 139   1        /*for(n=0;n < 50000;n++);
- 140   1        F12864_clear();
- 141   1      
- 142   1        dprintf_hanzi_string_2(GB_16,13,6,56,0);*/
- 143   1        while(1)                                //动画开始
- 144   1        { 
- 145   2          SdReadBlock(a,address,176);
- 146   2          address+=176;
- 147   2          SdReadBlock(b,address,176);
- 148   2          address+=176;
- 149   2          SdReadBlock(c,address,176);
- 150   2          address+=176;
- 151   2          SdReadBlock(d,address,176);
- 152   2          address+=176;
- 153   2      
- 154   2          dprintf_hanzi_string_1(a,0,0,16,0);
- 155   2          dprintf_hanzi_string_1(b,0,16,16,0);
- 156   2          dprintf_hanzi_string_1(c,0,32,16,0);
- 157   2          dprintf_hanzi_string_1(d,0,48,16,0);
- 158   2          if(FreqSelect == STOP){ //????
- 159   3            TR0 = 0;
- 160   3            while(1);
- 161   3          }
- 162   2          else{
- 163   3            FreqSelect = Music[MusicSelect][0];
- 164   3            Delayms(140 * Music[MusicSelect][1]); // 194BPM (60/194)/2=0.155s 155?????????140????????
- 165   3            MusicSelect++;
- 166   3            
- 167   3            TR0 = 0;  //??????
- 168   3            Delayms(5);
- 169   3            TR0 = 1;  
- 170   3        }
- 171   2      }}
- 172            void Timer0_Routine() interrupt 1{
- 173   1        if(FreqTable[FreqSelect]){
- 174   2          TH0 = FreqTable[FreqSelect] / 256;
- 175   2          TL0 = FreqTable[FreqSelect] % 256;
-C51 COMPILER V9.54   MAIN                                                                  11/30/2025 20:42:26 PAGE 4   
+ 112          bit g_playing = 1;                     // 1=playing, 0=paused
+ 113          unsigned long g_address = 0;           // current frame address in SD
+ 114          unsigned char xdata frame_buf[4][176]; // 4 blocks frame buffer
+ 115          
+ 116          // read one frame (704 bytes) from SD and show it on LCD
+ 117          void readAndShowOneFrame(void) {
+ 118   1          SdReadBlock(frame_buf[0], g_address, 176); g_address += 176;
+ 119   1          SdReadBlock(frame_buf[1], g_address, 176); g_address += 176;
+ 120   1          SdReadBlock(frame_buf[2], g_address, 176); g_address += 176;
+ 121   1          SdReadBlock(frame_buf[3], g_address, 176); g_address += 176;
+ 122   1      
+ 123   1          dprintf_hanzi_string_1(frame_buf[0], 0, 0, 16, 0);
+ 124   1          dprintf_hanzi_string_1(frame_buf[1], 0, 16, 16, 0);
+ 125   1          dprintf_hanzi_string_1(frame_buf[2], 0, 32, 16, 0);
+ 126   1          dprintf_hanzi_string_1(frame_buf[3], 0, 48, 16, 0);
+ 127   1      }
+ 128          
+ 129          // play one note of the music
+ 130          void playOneNote(void) {
+ 131   1          if (FreqSelect == STOP) {
+ 132   2              TR0 = 0;
+ 133   2              g_playing = 0;               // music ends -> stop (keys still work)
+ 134   2          } else {
+ 135   2              FreqSelect = Music[MusicSelect][0];
+ 136   2              Delayms(140 * Music[MusicSelect][1]);
+ 137   2              MusicSelect++;
+ 138   2              TR0 = 0;
+ 139   2              Delayms(5);
+ 140   2              TR0 = 1;
+ 141   2          }
+ 142   1      }
+ 143          
+ 144          void main(void) {
+ 145   1          F12864_init();
+ 146   1          F12864_clear();
+ 147   1          write_commond(0x98);
+ 148   1          while (!SdInit());    // init SD card (must be done before reading)
+ 149   1          Timer0_Init();
+ 150   1          Timer1_Init();
+ 151   1      
+ 152   1          while (1) {
+ 153   2              // handle key command
+ 154   2              if (g_key) {
+ 155   3                  switch (g_key) {
+ 156   4                      case 1: g_playing = !g_playing; break;          // play/pause
+ 157   4                      case 2: readAndShowOneFrame(); break;           // next frame
+ 158   4                      case 3: if (g_address >= 704) {                 // prev frame
+ 159   5                                  g_address -= 704;
+ 160   5                                  readAndShowOneFrame();
+ 161   5                              }
+ 162   4                              break;
+ 163   4                      case 4: g_address = 0; g_playing = 0; break;    // stop
+ 164   4                  }
+ 165   3                  g_key = 0;
+ 166   3              }
+ 167   2      
+ 168   2              // auto play
+ 169   2              if (g_playing) {
+ 170   3                  readAndShowOneFrame();
+ 171   3                  playOneNote();
+ 172   3              }
+ 173   2          }
+C51 COMPILER V9.54   MAIN                                                                  09/14/2026 20:55:47 PAGE 4   
 
- 176   2          BEEP = !BEEP;
- 177   2        }
- 178   1      }
+ 174   1      }
+ 175          
+ 176          void Timer0_Routine() interrupt 1 {
+ 177   1          if (FreqTable[FreqSelect]) {
+ 178   2              TH0 = FreqTable[FreqSelect] / 256;
+ 179   2              TL0 = FreqTable[FreqSelect] % 256;
+ 180   2              BEEP = !BEEP;
+ 181   2          }
+ 182   1      }
 
 
 MODULE INFORMATION:   STATIC OVERLAYABLE
-   CODE SIZE        =   1277    ----
-   CONSTANT SIZE    =    632    ----
-   XDATA SIZE       =   ----     704
+   CODE SIZE        =   1384    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   1178    ----
    PDATA SIZE       =   ----    ----
-   DATA SIZE        =     76      48
+   DATA SIZE        =      6      42
    IDATA SIZE       =   ----    ----
-   BIT SIZE         =   ----    ----
+   BIT SIZE         =      1    ----
 END OF MODULE INFORMATION.
 
 
-C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
+C51 COMPILATION COMPLETE.  1 WARNING(S),  0 ERROR(S)

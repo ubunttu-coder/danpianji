@@ -1,6 +1,7 @@
 "STARTUP.obj",
+"Timer1.obj",
 "main.obj",
-"Timer0.obj",
-"Delayms.obj" 
+"Delayms.obj",
+"Timer0.obj" 
 TO "2" 
 RAMSIZE(256) 
