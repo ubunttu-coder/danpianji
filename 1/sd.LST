@@ -1,0 +1,279 @@
+C51 COMPILER V9.52.0.0   SD                                                                06/07/2019 13:40:01 PAGE 1   
+
+
+C51 COMPILER V9.52.0.0, COMPILATION OF MODULE SD
+OBJECT MODULE PLACED IN sd.OBJ
+COMPILER INVOKED BY: E:\Program Files (x86)\keil\C51\BIN\C51.EXE sd.c BROWSE DEBUG OBJECTEXTEND TABS(2)
+
+line level    source
+
+   1          #include <AT89X52.H>
+   2          
+   3          #define F_OSC  12000000//晶振平率Hz  11059200 
+   4          #define F_BAUD 9600
+   5          #define RELOAD 256-F_OSC/12/32/F_BAUD
+   6          #define CR 0x0D        //回车
+   7          
+   8          //定义SD卡需要的4根信号线
+   9          sbit SD_CLK = P1^4;
+  10          sbit SD_DI  = P1^6;
+  11          sbit SD_DO  = P1^5;
+  12          sbit SD_CS  = P1^7;
+  13          
+  14          //===========================================================
+  15          //写一字节到SD卡,模拟SPI总线方式
+  16          void SdWrite(unsigned char n)
+  17          {
+  18   1      
+  19   1          unsigned char i;
+  20   1      
+  21   1          for(i=8;i;i--)
+  22   1          {
+  23   2              SD_CLK=0;
+  24   2              SD_DI=(n&0x80);
+  25   2              n<<=1;
+  26   2              SD_CLK=1;
+  27   2              }
+  28   1              SD_DI=1; 
+  29   1          } 
+  30          //===========================================================
+  31          //从SD卡读一字节,模拟SPI总线方式
+  32          unsigned char SdRead()
+  33          {
+  34   1          unsigned char n,i;
+  35   1          for(i=8;i;i--)
+  36   1          {
+  37   2              SD_CLK=0;
+  38   2              SD_CLK=1;
+  39   2              n<<=1;
+  40   2              if(SD_DO) n|=1;
+  41   2      
+  42   2          }
+  43   1          return n;
+  44   1      }
+  45          //============================================================
+  46          //检测SD卡的响应
+  47          unsigned char SdResponse()
+  48          {
+  49   1          unsigned char i=0,response;
+  50   1      
+  51   1          while(i<=8)
+  52   1          {
+  53   2              response = SdRead();
+  54   2              if(response==0x00)
+  55   2              break;
+C51 COMPILER V9.52.0.0   SD                                                                06/07/2019 13:40:01 PAGE 2   
+
+  56   2              if(response==0x01)
+  57   2              break;
+  58   2              i++;
+  59   2          }
+  60   1          return response;
+  61   1      } 
+  62          //================================================================
+  63          //发命令到SD卡
+  64          void SdCommand(unsigned char command, unsigned long argument, unsigned char CRC)
+  65          {
+  66   1      
+  67   1          SdWrite(command|0x40);
+  68   1          SdWrite(argument>>24);
+  69   1          SdWrite(argument>>16);
+  70   1          SdWrite(argument>>8);
+  71   1          SdWrite(argument);
+  72   1          SdWrite(CRC);
+  73   1      }
+  74          //================================================================
+  75          //初始化SD卡
+  76          unsigned char SdInit(void)
+  77          {
+  78   1          int delay=0, trials=0;
+  79   1          unsigned char i;
+  80   1          unsigned char response=0x01;
+  81   1      
+  82   1          SD_CS=1;
+  83   1          for(i=0;i<=9;i++)
+  84   1          SdWrite(0xff);
+  85   1          SD_CS=0;
+  86   1      
+  87   1          //Send Command 0 to put MMC in SPI mode
+  88   1          SdCommand(0x00,0,0x95);
+  89   1      
+  90   1      
+  91   1          response=SdResponse();
+  92   1      
+  93   1          if(response!=0x01)
+  94   1          {
+  95   2              return 0;
+  96   2          } 
+  97   1      
+  98   1          while(response==0x01)
+  99   1          {
+ 100   2              SD_CS=1;
+ 101   2              SdWrite(0xff);
+ 102   2              SD_CS=0;
+ 103   2              SdCommand(0x01,0x00ffc000,0xff);
+ 104   2              response=SdResponse();
+ 105   2          } 
+ 106   1      
+ 107   1          SD_CS=1;
+ 108   1          SdWrite(0xff);
+ 109   1          return 1; 
+ 110   1      }
+ 111          //================================================================
+ 112          //往SD卡指定地址写数据,一次最多512字节
+ 113          unsigned char SdWriteBlock(unsigned char *Block, unsigned long address,int len)
+ 114          {
+ 115   1          unsigned int count;
+ 116   1          unsigned char dataResp;
+ 117   1          //Block size is 512 bytes exactly
+C51 COMPILER V9.52.0.0   SD                                                                06/07/2019 13:40:01 PAGE 3   
+
+ 118   1          //First Lower SS
+ 119   1      
+ 120   1          SD_CS=0;
+ 121   1          //Then send write command
+ 122   1          SdCommand(0x18,address,0xff);
+ 123   1      
+ 124   1          if(SdResponse()==00)
+ 125   1          {
+ 126   2              SdWrite(0xff);
+ 127   2              SdWrite(0xff);
+ 128   2              SdWrite(0xff);
+ 129   2              //command was a success - now send data
+ 130   2              //start with DATA TOKEN = 0xFE
+ 131   2              SdWrite(0xfe);
+ 132   2              //now send data
+ 133   2              for(count=0;count<len;count++) SdWrite(*Block++);
+ 134   2      
+ 135   2              for(;count<512;count++) SdWrite(0);
+ 136   2              //data block sent - now send checksum
+ 137   2              SdWrite(0xff); //两字节CRC校验, 为0XFFFF 表示不考虑CRC
+ 138   2              SdWrite(0xff);
+ 139   2              //Now read in the DATA RESPONSE token
+ 140   2              dataResp=SdRead();
+ 141   2              //Following the DATA RESPONSE token
+ 142   2              //are a number of BUSY bytes
+ 143   2              //a zero byte indicates the MMC is busy
+ 144   2      
+ 145   2              while(SdRead()==0);
+ 146   2      
+ 147   2              dataResp=dataResp&0x0f; //mask the high byte of the DATA RESPONSE token
+ 148   2              SD_CS=1;
+ 149   2              SdWrite(0xff);
+ 150   2              if(dataResp==0x0b)
+ 151   2              {
+ 152   3              //printf("DATA WAS NOT ACCEPTED BY CARD -- CRC ERROR\n");
+ 153   3              return 0;
+ 154   3              }
+ 155   2              if(dataResp==0x05)
+ 156   2              return 1;
+ 157   2      
+ 158   2              //printf("Invalid data Response token.\n");
+ 159   2              return 0;
+ 160   2          }
+ 161   1          //printf("Command 0x18 (Write) was not received by the MMC.\n");
+ 162   1          return 0;
+ 163   1      }
+ 164          
+ 165          //=======================================================================
+ 166          //从SD卡指定地址读取数据,一次最多512字节
+ 167          unsigned char SdReadBlock(unsigned char *Block, unsigned long address,int len)
+ 168          {
+ 169   1          unsigned int count;
+ 170   1          //Block size is 512 bytes exactly
+ 171   1          //First Lower SS
+ 172   1      
+ 173   1           //printf("MMC_read_block\n");
+ 174   1      
+ 175   1          SD_CS=0;
+ 176   1          //Then send read command
+ 177   1          SdCommand(0x11,address,0xff);
+ 178   1      
+ 179   1          if(SdResponse()==00)
+C51 COMPILER V9.52.0.0   SD                                                                06/07/2019 13:40:01 PAGE 4   
+
+ 180   1          {
+ 181   2              //command was a success - now send data
+ 182   2              //start with DATA TOKEN = 0xFE
+ 183   2              while(SdRead()!=0xfe);
+ 184   2      
+ 185   2              for(count=0;count<len;count++) *Block++=SdRead(); 
+ 186   2      
+ 187   2              for(;count<512;count++) SdRead();
+ 188   2      
+ 189   2              //data block sent - now send checksum
+ 190   2              SdRead();
+ 191   2              SdRead();
+ 192   2              //Now read in the DATA RESPONSE token
+ 193   2              SD_CS=1;
+ 194   2              SdWrite(0xff);
+ 195   2              return 1;
+ 196   2          }
+ 197   1      //printf("Command 0x11 (Read) was not received by the MMC.\n");
+ 198   1          return 0;
+ 199   1      }
+ 200          
+ 201          /*******************************************
+ 202                   串口初始化
+ 203          *******************************************/
+ 204          void UART()                                        //用不着的函数
+ 205          {
+ 206   1          SCON=0x40;//工作与方式1不允许接受
+ 207   1          TMOD=0x20;//定时器1工作与方式2自动重装模式
+ 208   1          TH1=RELOAD;
+ 209   1          TR1=1;
+ 210   1          TI=0;   
+ 211   1      }
+ 212          
+ 213          /********************************************************************
+ 214          * 名称 : Com_Init()
+ 215          * 功能 : 初始化串口程序，晶振11.0592, 波特率9600
+ 216          * 输入 : 无
+ 217          * 输出 : 无
+ 218          **********************网上找的另一个串口初始化************************
+ 219          ***********************************************************************/
+ 220          void Com_Init(void)                                //用不着的函数
+ 221          {
+ 222   1      TMOD = 0x20;
+ 223   1      PCON = 0x00;
+ 224   1      SCON = 0x50;
+ 225   1      TH1 = 0xFd;
+ 226   1      TL1 = 0xFd;
+ 227   1      TR1 = 1;
+ 228   1      }
+ 229          //============================================================
+ 230          
+ 231          //通过串口发送一个字符串
+ 232          void Sen_String(unsigned char *string)               //用不着的函数
+ 233          {
+ 234   1          while(*string!='\0')
+ 235   1          {
+ 236   2              if(*string=='\n')
+ 237   2              {
+ 238   3                  SBUF=CR;
+ 239   3              }
+ 240   2              else
+ 241   2              {
+C51 COMPILER V9.52.0.0   SD                                                                06/07/2019 13:40:01 PAGE 5   
+
+ 242   3                  SBUF=*string;
+ 243   3              }
+ 244   2              while(TI==0);
+ 245   2              TI=0;
+ 246   2              string++;
+ 247   2          }
+ 248   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    564    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----      28
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

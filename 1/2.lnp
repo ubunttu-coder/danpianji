@@ -1,0 +1,6 @@
+"STARTUP.obj",
+"main.obj",
+"Timer0.obj",
+"Delayms.obj" 
+TO "2" 
+RAMSIZE(256) 
